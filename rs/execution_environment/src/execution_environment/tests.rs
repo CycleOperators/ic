@@ -805,6 +805,44 @@ fn get_canister_status_of_nonexisting_canister() {
 }
 
 #[test]
+fn get_canister_status_memory_metrics() {
+    let mut test = ExecutionTestBuilder::new().build();
+    let controller = test.universal_canister().unwrap();
+    let canister = test.universal_canister().unwrap();
+    let canister_status_args = Encode!(&CanisterIdRecord::from(canister)).unwrap();
+    let get_canister_status = wasm()
+        .call_simple(
+            ic00::IC_00,
+            Method::CanisterStatus,
+            call_args().other_side(canister_status_args),
+        )
+        .build();
+    test.set_controller(canister, controller.get()).unwrap();
+    let result = test.ingress(controller, "update", get_canister_status);
+    let reply = get_reply(result);
+    let csr = CanisterStatusResultV2::decode(&reply).unwrap();
+    assert_eq!(csr.status(), CanisterStatusType::Running);
+
+    let wasm_memory_size = csr.wasm_memory_size();
+    let stable_memory_size = csr.stable_memory_size();
+    let global_memory_size = csr.global_memory_size();
+    let wasm_binary_memory_size = csr.wasm_binary_memory_size();
+    let custom_sections_memory_size = csr.custom_sections_memory_size();
+    
+    let execution_memory_size = wasm_memory_size + stable_memory_size + global_memory_size + wasm_binary_memory_size + custom_sections_memory_size;
+
+    let canister_history_memory_size = csr.canister_history_memory_size();
+    let wasm_chunk_store_memory_size = csr.wasm_chunk_store_memory_size();
+    let snapshot_memory_size = csr.snapshot_memory_size();
+
+    let system_memory_size = canister_history_memory_size + wasm_chunk_store_memory_size + snapshot_memory_size;
+
+    let memory_size = csr.memory_size();
+    
+    assert_eq!(memory_size, execution_memory_size + system_memory_size);
+}
+
+#[test]
 fn deposit_cycles_to_non_existing_canister_fails() {
     let mut test = ExecutionTestBuilder::new().build();
     let controller = test.universal_canister().unwrap();
