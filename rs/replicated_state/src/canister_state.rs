@@ -372,7 +372,7 @@ impl CanisterState {
         self.execution_memory_usage()
             + self.canister_history_memory_usage()
             + self.wasm_chunk_store_memory_usage()
-            + self.system_state_snapshots_memory_usage()
+            + self.snapshots_memory_usage()
     }
 
     /// Returns the amount of Wasm memory currently used by the canister in bytes.
@@ -437,7 +437,7 @@ impl CanisterState {
         self.system_state.wasm_chunk_store.memory_usage()
     }
 
-    pub fn system_state_snapshots_memory_usage(&self) -> NumBytes {
+    pub fn snapshots_memory_usage(&self) -> NumBytes {
         self.system_state.snapshots_memory_usage
     }
 
