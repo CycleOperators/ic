@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -eEuo pipefail
+PODMAN_ARGS=()
+
+echo "PODMAN_ARGS: ${PODMAN_ARGS[@]}"
 
 eprintln() {
     echo "$@" >&2
@@ -31,10 +34,10 @@ Script uses dfinity/ic-build image by default.
 EOF
 }
 
-if findmnt /hoststorage >/dev/null; then
-    PODMAN_ARGS=(--root /hoststorage/podman-root)
-else
-    PODMAN_ARGS=()
+
+# Then optionally append to it
+if mount | grep -q '/hoststorage'; then
+    PODMAN_ARGS+=(--root /hoststorage/podman-root)
 fi
 
 IMAGE="ghcr.io/dfinity/ic-build"
@@ -63,6 +66,8 @@ while test $# -gt $CTR; do
     esac
 done
 
+
+
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 IMAGE_TAG=$("$REPO_ROOT"/ci/container/get-image-tag.sh)
 IMAGE="$IMAGE:$IMAGE_TAG"
@@ -76,7 +81,7 @@ if ! sudo podman "${PODMAN_ARGS[@]}" image exists $IMAGE; then
     fi
 fi
 
-if findmnt /hoststorage >/dev/null; then
+if mount | grep -q '/hoststorage'; then
     eprintln "Purging non-relevant container images"
     sudo podman "${PODMAN_ARGS[@]}" image prune -a -f --filter "reference!=$IMAGE"
 fi
@@ -144,7 +149,7 @@ if [ "$(id -u)" = "1000" ]; then
         )
     fi
 
-    if findmnt /hoststorage >/dev/null; then
+    if mount | grep -q 'on /hoststorage'; then
         # use host's storage for cargo target
         # * shared with VSCode's devcontainer, see .devcontainer/devcontainer.json
         # this configuration improves performance of rust-analyzer
@@ -163,14 +168,17 @@ if [ "$(id -u)" = "1000" ]; then
     fi
 fi
 
-if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -e "${SSH_AUTH_SOCK:-}" ]; then
-    PODMAN_RUN_ARGS+=(
-        -v "$SSH_AUTH_SOCK:/ssh-agent"
-        -e SSH_AUTH_SOCK="/ssh-agent"
-    )
-else
-    eprintln "No ssh-agent to forward."
-fi
+# commented out this code for now to disable ssh-agent forwarding
+comment_block() {
+    if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -e "${SSH_AUTH_SOCK:-}" ]; then
+        PODMAN_RUN_ARGS+=(
+            -v "$SSH_AUTH_SOCK:/ssh-agent"
+            -e SSH_AUTH_SOCK="/ssh-agent"
+        )
+    else
+        eprintln "No ssh-agent to forward."
+    fi
+}
 
 # make sure we have all bind-mounts
 mkdir -p ~/.{aws,ssh,cache,local/share/fish} && touch ~/.{zsh,bash}_history
