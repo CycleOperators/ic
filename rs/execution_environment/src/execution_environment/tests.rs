@@ -805,17 +805,10 @@ fn get_canister_status_of_nonexisting_canister() {
 }
 
 fn get_canister_status(test: &mut ExecutionTest, canister_id: CanisterId) -> CanisterStatusResultV2 {
-    let canister_status_args = Encode!(&CanisterIdRecord::from(canister_id)).unwrap();
-    let get_canister_status = wasm()
-        .call_simple(
-            ic00::IC_00,
-            Method::CanisterStatus,
-            call_args().other_side(canister_status_args),
-        )
-        .build();
-    let result = test.ingress(canister_id, "update", get_canister_status);
-    let reply = get_reply(result);
-    CanisterStatusResultV2::decode(&reply).unwrap()
+    match test.canister_status(canister_id).unwrap() {
+        WasmResult::Reply(reply) => CanisterStatusResultV2::decode(&reply).unwrap(),
+        WasmResult::Reject(msg) => panic!("{}", msg) ,
+    }
 }
 
 #[test]
@@ -848,8 +841,25 @@ fn get_canister_status_memory_metrics_wasm_memory_size() {
     let canister_id = test.universal_canister().unwrap();
     let csr: CanisterStatusResultV2 = get_canister_status(&mut test, canister_id);
 
-    assert_ne!(
+    assert_eq!(
         get_canister_status(&mut test, canister_id).wasm_memory_size(), 
+        csr.wasm_memory_size()
+    );
+
+    let canister_status_args = Encode!(&CanisterIdRecord::from(canister_id)).unwrap();
+    let get_canister_status = wasm()
+        .call_simple(
+            ic00::IC_00,
+            Method::CanisterStatus,
+            call_args().other_side(canister_status_args),
+        )
+        .build();
+    let result = test.ingress(canister_id, "update", get_canister_status);
+    let reply = get_reply(result);
+    let updated_csr = CanisterStatusResultV2::decode(&reply).unwrap();
+
+    assert_ne!(
+        updated_csr.wasm_memory_size(), 
         csr.wasm_memory_size()
     );
 }
@@ -882,7 +892,10 @@ fn get_canister_status_memory_metrics_global_memory_size() {
     let canister_id = test.universal_canister().unwrap();
     let csr: CanisterStatusResultV2 = get_canister_status(&mut test, canister_id);
     let exported_globals = test.execution_state(canister_id).exported_globals.clone();
-    assert_eq!(csr.global_memory_size(), NumBytes::new(8 * exported_globals.len() as u64));
+    assert_eq!(
+        csr.global_memory_size(), 
+        NumBytes::new(8 * exported_globals.len() as u64)
+    );
 }
 
 #[test]
