@@ -389,7 +389,7 @@ impl CanisterState {
             .map_or(NumBytes::from(0), |es| es.stable_memory_usage())
     }
 
-    /// Returns the amount of global memory currently used by the canister in bytes.
+    /// Returns the amount of memory currently used by global variables of the canister in bytes.
     pub fn global_memory_usage(&self) -> NumBytes {
         self.execution_state
             .as_ref()

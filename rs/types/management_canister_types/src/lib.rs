@@ -972,9 +972,9 @@ pub struct QueryStats {
 ///     controller: principal;
 ///     memory_size: nat;
 ///     memory_metrics: record {
-///         heap_size : nat;
-///         stable_size : nat;
-///         global_size : nat;
+///         wasm_memory_size : nat;
+///         stable_memory_size : nat;
+///         global_memory_size : nat;
 ///         wasm_binary_size : nat;
 ///         custom_sections_size : nat;
 ///         canister_history_size : nat;
@@ -1011,9 +1011,9 @@ pub struct CanisterStatusResultV2 {
 
 #[derive(Eq, PartialEq, Debug, CandidType, Deserialize)]
 pub struct MemoryMetrics {
-    heap_size: candid::Nat,
-    stable_size: candid::Nat,
-    global_size: candid::Nat,
+    wasm_memory_size: candid::Nat,
+    stable_memory_size: candid::Nat,
+    global_memory_size: candid::Nat,
     wasm_binary_size: candid::Nat,
     custom_sections_size: candid::Nat,
     canister_history_size: candid::Nat,
@@ -1058,9 +1058,9 @@ impl CanisterStatusResultV2 {
             controller: candid::Principal::from_text(controller.to_string()).unwrap(),
             memory_size: candid::Nat::from(memory_size.get()),
             memory_metrics: MemoryMetrics{
-                heap_size: candid::Nat::from(wasm_memory_size.get()),
-                stable_size: candid::Nat::from(stable_memory_size.get()),
-                global_size: candid::Nat::from(global_memory_size.get()),
+                wasm_memory_size: candid::Nat::from(wasm_memory_size.get()),
+                stable_memory_size: candid::Nat::from(stable_memory_size.get()),
+                global_memory_size: candid::Nat::from(global_memory_size.get()),
                 wasm_binary_size: candid::Nat::from(wasm_binary_memory_size.get()),
                 custom_sections_size: candid::Nat::from(custom_sections_memory_size.get()),
                 canister_history_size: candid::Nat::from(canister_history_memory_size.get()),
@@ -1115,15 +1115,15 @@ impl CanisterStatusResultV2 {
     }
 
     pub fn wasm_memory_size(&self) -> NumBytes {
-        NumBytes::from(self.memory_metrics.heap_size.0.to_u64().unwrap())
+        NumBytes::from(self.memory_metrics.wasm_memory_size.0.to_u64().unwrap())
     }
 
     pub fn stable_memory_size(&self) -> NumBytes {
-        NumBytes::from(self.memory_metrics.stable_size.0.to_u64().unwrap())
+        NumBytes::from(self.memory_metrics.stable_memory_size.0.to_u64().unwrap())
     }
 
     pub fn global_memory_size(&self) -> NumBytes {
-        NumBytes::from(self.memory_metrics.global_size.0.to_u64().unwrap())
+        NumBytes::from(self.memory_metrics.global_memory_size.0.to_u64().unwrap())
     }
 
     pub fn wasm_binary_memory_size(&self) -> NumBytes {
