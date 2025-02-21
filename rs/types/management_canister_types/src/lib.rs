@@ -979,7 +979,7 @@ pub struct QueryStats {
 ///         custom_sections_size : nat;
 ///         canister_history_size : nat;
 ///         wasm_chunk_store_size : nat;
-///         snapshot_size : nat;
+///         snapshots_size : nat;
 ///     };
 ///     cycles: nat;
 ///     freezing_threshold: nat,
@@ -1018,7 +1018,7 @@ pub struct MemoryMetrics {
     custom_sections_size: candid::Nat,
     canister_history_size: candid::Nat,
     wasm_chunk_store_size: candid::Nat,
-    snapshot_size: candid::Nat,
+    snapshots_size: candid::Nat,
 }
 
 impl CanisterStatusResultV2 {
@@ -1065,7 +1065,7 @@ impl CanisterStatusResultV2 {
                 custom_sections_size: candid::Nat::from(custom_sections_memory_size.get()),
                 canister_history_size: candid::Nat::from(canister_history_memory_size.get()),
                 wasm_chunk_store_size: candid::Nat::from(wasm_chunk_store_memory_size.get()),
-                snapshot_size: candid::Nat::from(snapshot_memory_size.get())
+                snapshots_size: candid::Nat::from(snapshot_memory_size.get())
             },
             cycles: candid::Nat::from(cycles),
             // the following is spec 0.12/0.13 compat;
@@ -1143,7 +1143,7 @@ impl CanisterStatusResultV2 {
     }
 
     pub fn snapshot_memory_size(&self) -> NumBytes {
-        NumBytes::from(self.memory_metrics.snapshot_size.0.to_u64().unwrap())
+        NumBytes::from(self.memory_metrics.snapshots_size.0.to_u64().unwrap())
     }
 
     pub fn cycles(&self) -> u128 {
