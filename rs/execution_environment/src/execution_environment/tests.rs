@@ -892,7 +892,7 @@ fn get_canister_status(
 ) -> CanisterStatusResultV2 {
     match test.canister_status(canister_id).unwrap() {
         WasmResult::Reply(reply) => CanisterStatusResultV2::decode(&reply).unwrap(),
-        WasmResult::Reject(msg) => panic!("{}", msg),
+        WasmResult::Reject(msg) => panic!("unexpected reject: {}", msg),
     }
 }
 
